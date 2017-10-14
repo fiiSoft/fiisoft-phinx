@@ -35,6 +35,8 @@ final class GenericPhinxCmd extends Command
      */
     protected function configure()
     {
+        $this->setDescription('Run particular Phinx command');
+        
         $this->addArgument(
             'config',
             InputArgument::REQUIRED,
