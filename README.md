@@ -20,4 +20,4 @@ It contains wrappers for Phinx's commands:
 
 In addition, it comes with special generic-purpose command phinx which allows to run other Phinx-specific commands in special way.
 
-Keep in mind that this library uses its own configuration-schema.
+Keep in mind that this library uses its own configuration-schema as well as template for migrations classes and base abstract class for them.
