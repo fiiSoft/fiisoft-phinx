@@ -62,7 +62,7 @@ abstract class PhinxAbstractMigration extends AbstractMigration
      */
     final protected function executeIfViewDoesNotExist($viewName, $sql)
     {
-        if (!$this->hasTable($viewName)) {
+        if (!$this->hasView($viewName)) {
             $this->execute($sql);
         }
     }
@@ -353,9 +353,30 @@ SQL
      */
     final protected function dropView($viewName)
     {
-        if ($this->hasTable($viewName)) {
+        if ($this->hasView($viewName)) {
             $this->execute('DROP VIEW '.$viewName);
         }
+    }
+    
+    /**
+     * @param string $viewName
+     * @return bool
+     */
+    final protected function hasView($viewName)
+    {
+        return $this->hasTable($viewName);
+    }
+    
+    /**
+     * @param string $tableName
+     * @return bool
+     */
+    final public function hasTable($tableName)
+    {
+        list($tableSchema, $tableName) = $this->getSchemaAndTableNameFrom($tableName);
+        $this->writelnVerbose('Table name: '.$tableName.' and schema name: '.$tableSchema);
+        
+        return $this->getAdapterWithSchema($this->adapter, $tableSchema)->hasTable($tableName);
     }
     
     /**
@@ -409,22 +430,35 @@ SQL
             return $tableName;
         }
         
+        list($schemaName, $tableName) = $this->getSchemaAndTableNameFrom($tableName);
+        $this->writelnVerbose('Table name: '.$tableName.' and schema name: '.$schemaName);
+        
+        $options['schema'] = $schemaName;
+        
+        return $this->table($tableName, $options);
+    }
+    
+    /**
+     * @param string $tableName
+     * @throws UnexpectedValueException
+     * @return array tuple with (schemaName, tableName)
+     */
+    private function getSchemaAndTableNameFrom($tableName)
+    {
         if (false !== ($pos = strpos($tableName, '.'))) {
             $fullName = $tableName;
-
-            $options['schema'] = substr($fullName, 0, $pos);
+        
+            $schemaName = substr($fullName, 0, $pos);
             $tableName = substr($fullName, $pos + 1);
-
+        
             if ($tableName === false) {
                 throw new UnexpectedValueException('Error while retrieving schema and table name from '.$fullName);
             }
+        } else {
+            $schemaName = 'public';
         }
-
-        $this->writelnVerbose(
-            'Table name: '.$tableName.' and schema: '.(isset($options['schema']) ? $options['schema'] : '')
-        );
         
-        return $this->table($tableName, $options);
+        return [$schemaName, $tableName];
     }
     
     /**
@@ -437,21 +471,34 @@ SQL
         $table = parent::table($tableName, $options);
     
         $tableOptions = $table->getOptions();
-        $tableAdapter = $table->getAdapter();
-        
         $tableSchema = isset($tableOptions['schema']) ? $tableOptions['schema'] : 'public';
-        $adapterSchema = $tableAdapter->hasOption('schema') ? $tableAdapter->getOption('schema') : 'public';
         
-        if ($tableSchema !== $adapterSchema) {
-            $this->writelnVerbose('Table schema: '.$tableSchema.', adapter schema: '.$adapterSchema);
-            $adapter = clone $tableAdapter;
-            $options = $adapter->getOptions();
-            $options['schema'] = $tableSchema;
-            $adapter->setOptions($options);
-            $table->setAdapter($adapter);
-        }
+        $table->setAdapter($this->getAdapterWithSchema($table->getAdapter(), $tableSchema));
         
         return $table;
+    }
+    
+    /**
+     * @param AdapterInterface $adapter
+     * @param string $schema
+     * @return AdapterInterface
+     */
+    private function getAdapterWithSchema(AdapterInterface $adapter, $schema)
+    {
+        $adapterSchema = $adapter->hasOption('schema') ? $adapter->getOption('schema') : 'public';
+        if ($adapterSchema === $schema) {
+            return $adapter;
+        }
+    
+        $this->writelnVerbose('Adapter has schema: '.$adapterSchema.' but required schema is: '.$schema.' - make copy');
+        
+        $copy = clone $adapter;
+        
+        $options = $copy->getOptions();
+        $options['schema'] = $schema;
+        $copy->setOptions($options);
+        
+        return $copy;
     }
     
     /**
