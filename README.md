@@ -3,7 +3,6 @@
 Console-commands to use Phinx's library console-commands in custom console application (based on symfony/console package).
 
 My advice is - do not use it unless you are enough strong mentally to immune for such bad code. 
-But of course you can if you want.
 
 ---------------------------------
 
