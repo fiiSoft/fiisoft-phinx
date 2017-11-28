@@ -52,13 +52,32 @@ trait PhinxCmdExecuteTrait
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        if (0 !== ($exitCode = $this->setCommandPhinxConfig($input, $output))) {
+            return $exitCode;
+        }
+        
+        $this->loadManager($input, $output);
+        
+        return parent::execute($input, $output);
+    }
+    
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     * @return int
+     */
+    private function setCommandPhinxConfig(InputInterface $input, OutputInterface $output)
+    {
         $configName = $input->getArgument('config');
+        
         if (!$this->phinxConfig->hasConfig($configName)) {
             $output->writeln('<error>Configuration '.$configName.' not found</error>');
             return 1;
         }
         
         $env = $input->hasArgument('environment') ? $input->getArgument('environment') : null;
+        
         if (!$env && $input->hasOption('environment')) {
             $env = $input->getOption('environment');
         }
@@ -81,9 +100,8 @@ trait PhinxCmdExecuteTrait
         }
         
         $this->setConfig(new Config($config));
-        $this->loadManager($input, $output);
         
-        return parent::execute($input, $output);
+        return 0;
     }
     
     /**

@@ -79,6 +79,10 @@ final class PhinxConfig extends AbstractConfiguration
         ];
         
         foreach ($this->settings as $key => $config) {
+            if (!isset($config['environments'])) {
+                continue;
+            }
+            
             if (!isset($config['paths']) && isset($defaults['paths'])) {
                 $config['paths'] = $defaults['paths'];
             }
@@ -89,7 +93,7 @@ final class PhinxConfig extends AbstractConfiguration
                 } elseif (isset($defaults['phinx_files'])) {
                     $pathsRoot = $defaults['phinx_files'] . DIRECTORY_SEPARATOR . $key;
                 } else {
-                    $pathsRoot = __DIR__ . DIRECTORY_SEPARATOR . $key;
+                    $pathsRoot = (getcwd() ?: '') . DIRECTORY_SEPARATOR . 'phinx' . DIRECTORY_SEPARATOR . $key;
                 }
     
                 foreach (['migrations', 'seeds'] as $item) {

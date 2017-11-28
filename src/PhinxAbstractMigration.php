@@ -9,16 +9,15 @@ use Phinx\Migration\AbstractMigration;
 use Phinx\Migration\MigrationInterface;
 use Phinx\Util\Util;
 use ReflectionClass;
-use ReflectionException;
-use Symfony\Component\Console\Output\OutputInterface;
-use UnexpectedValueException;
 
 abstract class PhinxAbstractMigration extends AbstractMigration
 {
+    use PhinxCommonTrait;
+    
     /**
      * @param Table|string $tableName
      * @param string $columnName
-     * @throws UnexpectedValueException
+     * @throws \UnexpectedValueException
      * @return void
      */
     final protected function dropColumn($tableName, $columnName)
@@ -33,7 +32,7 @@ abstract class PhinxAbstractMigration extends AbstractMigration
      * @param string $tableName
      * @param string $columnName
      * @param string $sql
-     * @throws UnexpectedValueException
+     * @throws \UnexpectedValueException
      * @return void
      */
     final protected function executeIfColumnDoesNotExist($tableName, $columnName, $sql)
@@ -46,6 +45,7 @@ abstract class PhinxAbstractMigration extends AbstractMigration
     /**
      * @param string $tableName
      * @param string $sql
+     * @throws \UnexpectedValueException
      * @return void
      */
     final protected function executeIfTableDoesNotExist($tableName, $sql)
@@ -58,6 +58,7 @@ abstract class PhinxAbstractMigration extends AbstractMigration
     /**
      * @param string $viewName
      * @param string $sql
+     * @throws \UnexpectedValueException
      * @return void
      */
     final protected function executeIfViewDoesNotExist($viewName, $sql)
@@ -70,7 +71,7 @@ abstract class PhinxAbstractMigration extends AbstractMigration
     /**
      * @param string $procName
      * @param string $sql
-     * @throws UnexpectedValueException
+     * @throws \UnexpectedValueException
      * @throws LogicException
      * @return void
      */
@@ -84,8 +85,8 @@ abstract class PhinxAbstractMigration extends AbstractMigration
     /**
      * @param string $triggerName
      * @param string $sql
-     * @throws UnexpectedValueException
-     * @throws LogicException
+     * @throws \UnexpectedValueException
+     * @throws \LogicException
      * @return void
      */
     final protected function executeIfTriggerDoesNotExist($triggerName, $sql)
@@ -97,8 +98,8 @@ abstract class PhinxAbstractMigration extends AbstractMigration
     
     /**
      * @param string $procName
-     * @throws UnexpectedValueException
-     * @throws LogicException
+     * @throws \UnexpectedValueException
+     * @throws \LogicException
      * @return void
      */
     final protected function dropProcedure($procName)
@@ -127,8 +128,8 @@ SQL
     
     /**
      * @param string $procName
-     * @throws UnexpectedValueException
-     * @throws LogicException
+     * @throws \UnexpectedValueException
+     * @throws \LogicException
      * @return bool
      */
     final protected function procedureExists($procName)
@@ -143,8 +144,8 @@ SQL
     /**
      * @param string $triggerName
      * @param string $tableName
-     * @throws UnexpectedValueException
-     * @throws LogicException
+     * @throws \UnexpectedValueException
+     * @throws \LogicException
      * @return void
      */
     final protected function dropTrigger($triggerName, $tableName)
@@ -163,8 +164,8 @@ SQL
     
     /**
      * @param string $triggerName
-     * @throws UnexpectedValueException
-     * @throws LogicException
+     * @throws \UnexpectedValueException
+     * @throws \LogicException
      * @return bool
      */
     final protected function triggerExists($triggerName)
@@ -198,7 +199,7 @@ SQL
     }
     
     /**
-     * @throws LogicException
+     * @throws \LogicException
      * @return void
      */
     private function caseNotSupportedForCurrentAdapterType()
@@ -209,7 +210,7 @@ SQL
     /**
      * @param Table|string $tableName
      * @param string $columnName
-     * @throws UnexpectedValueException
+     * @throws \UnexpectedValueException
      * @return bool
      */
     final protected function columnExists($tableName, $columnName)
@@ -221,7 +222,7 @@ SQL
      * @param Table|string $tableName
      * @param array|string $column
      * @param string|null $constraint
-     * @throws UnexpectedValueException
+     * @throws \UnexpectedValueException
      * @return bool
      */
     final protected function doesTableHaveForeignKey($tableName, $column, $constraint = null)
@@ -232,7 +233,7 @@ SQL
     /**
      * @param Table|string $tableName
      * @param string $indexName
-     * @throws UnexpectedValueException
+     * @throws \UnexpectedValueException
      * @return void
      */
     final protected function dropIndexByName($tableName, $indexName)
@@ -244,7 +245,7 @@ SQL
      * @param Table|string $tableName
      * @param array|string $column
      * @param string|null $constraint
-     * @throws UnexpectedValueException
+     * @throws \UnexpectedValueException
      * @return void
      */
     final protected function dropForeignKeyByName($tableName, $column, $constraint = null)
@@ -258,29 +259,8 @@ SQL
     /**
      * @param Table|string $tableName
      * @param array|string $column
-     * @param mixed|null $value
-     * @throws UnexpectedValueException
-     * @return bool
-     */
-    final protected function doesEntryExist($tableName, $column, $value = null)
-    {
-        $table = $this->getTable($tableName);
-        $adapter = $table->getAdapter();
-        
-        $row = $adapter->fetchRow(
-            'SELECT COUNT(1) AS cnt FROM '
-            .$adapter->quoteTableName($table->getName())
-            .' WHERE '.$this->buildWhere($adapter, $column, $value)
-        );
-        
-        return $row['cnt'] > 0;
-    }
-    
-    /**
-     * @param Table|string $tableName
-     * @param array|string $column
      * @param mixed $value
-     * @throws UnexpectedValueException
+     * @throws \UnexpectedValueException
      * @return void
      */
     final protected function deleteFromTable($tableName, $column, $value = null)
@@ -299,7 +279,7 @@ SQL
      * @param Table|string $tableName
      * @param array|string $whereColumn
      * @param mixed $value
-     * @throws UnexpectedValueException
+     * @throws \UnexpectedValueException
      * @return array
      */
     final protected function fetchRowFromTable($tableName, $whereColumn, $value = null)
@@ -318,7 +298,7 @@ SQL
      * @param Table|string $tableName
      * @param array|string $column
      * @param string|null $indexName
-     * @throws UnexpectedValueException
+     * @throws \UnexpectedValueException
      * @return void
      */
     final protected function createUniqueIndex($tableName, $column, $indexName = null)
@@ -338,6 +318,7 @@ SQL
     
     /**
      * @param string $tableName
+     * @throws \UnexpectedValueException
      * @return void
      */
     final public function dropTable($tableName)
@@ -349,6 +330,7 @@ SQL
     
     /**
      * @param string $viewName
+     * @throws \UnexpectedValueException
      * @return void
      */
     final protected function dropView($viewName)
@@ -360,6 +342,7 @@ SQL
     
     /**
      * @param string $viewName
+     * @throws \UnexpectedValueException
      * @return bool
      */
     final protected function hasView($viewName)
@@ -369,6 +352,7 @@ SQL
     
     /**
      * @param string $tableName
+     * @throws \UnexpectedValueException
      * @return bool
      */
     final public function hasTable($tableName)
@@ -377,88 +361,6 @@ SQL
         $this->writelnVerbose('Table name: '.$tableName.' and schema name: '.$tableSchema);
         
         return $this->getAdapterWithSchema($this->adapter, $tableSchema)->hasTable($tableName);
-    }
-    
-    /**
-     * @param AdapterInterface $adapter
-     * @param array|string $column
-     * @param mixed $value
-     * @return string
-     */
-    final protected function buildWhere(AdapterInterface $adapter, $column, $value)
-    {
-        if (is_array($column)) {
-            $pieces = [];
-    
-            /** @noinspection ForeachSourceInspection */
-            foreach ($column as $col => $val) {
-                $pieces[] = $adapter->quoteColumnName($col).' = '.$this->quote($val);
-            }
-            
-            return implode(' AND ', $pieces);
-        }
-    
-        return $adapter->quoteColumnName($column).' = '.$this->quote($value);
-    }
-    
-    /**
-     * @param mixed $value
-     * @return mixed
-     */
-    final protected function quote($value)
-    {
-        if (is_string($value)) {
-            return "'".str_replace("'", "\'", $value)."'";
-        }
-    
-        if (is_bool($value)) {
-            return $value ? 'TRUE' : 'FALSE';
-        }
-        
-        return $value;
-    }
-    
-    /**
-     * @param Table|string $tableName
-     * @param array $options
-     * @throws UnexpectedValueException
-     * @return Table
-     */
-    final protected function getTable($tableName, array $options = [])
-    {
-        if ($tableName instanceof Table) {
-            return $tableName;
-        }
-        
-        list($schemaName, $tableName) = $this->getSchemaAndTableNameFrom($tableName);
-        $this->writelnVerbose('Table name: '.$tableName.' and schema name: '.$schemaName);
-        
-        $options['schema'] = $schemaName;
-        
-        return $this->table($tableName, $options);
-    }
-    
-    /**
-     * @param string $tableName
-     * @throws UnexpectedValueException
-     * @return array tuple with (schemaName, tableName)
-     */
-    private function getSchemaAndTableNameFrom($tableName)
-    {
-        if (false !== ($pos = strpos($tableName, '.'))) {
-            $fullName = $tableName;
-        
-            $schemaName = substr($fullName, 0, $pos);
-            $tableName = substr($fullName, $pos + 1);
-        
-            if ($tableName === false) {
-                throw new UnexpectedValueException('Error while retrieving schema and table name from '.$fullName);
-            }
-        } else {
-            $schemaName = 'public';
-        }
-        
-        return [$schemaName, $tableName];
     }
     
     /**
@@ -502,17 +404,8 @@ SQL
     }
     
     /**
-     * @param string $message
-     * @return void
-     */
-    private function writelnVerbose($message)
-    {
-        $this->output->writeln($message, OutputInterface::OUTPUT_NORMAL | OutputInterface::VERBOSITY_VERBOSE);
-    }
-    
-    /**
      * @param string $migrationClass
-     * @throws ReflectionException
+     * @throws \ReflectionException
      * @return void
      */
     final protected function executeMigrationUp($migrationClass)
@@ -524,7 +417,7 @@ SQL
     
     /**
      * @param string $migrationClass
-     * @throws ReflectionException
+     * @throws \ReflectionException
      * @return void
      */
     final protected function executeMigrationDown($migrationClass)
@@ -536,7 +429,7 @@ SQL
     
     /**
      * @param string $migrationClass
-     * @throws ReflectionException
+     * @throws \ReflectionException
      * @return MigrationInterface
      */
     private function instantiateMigration($migrationClass)
