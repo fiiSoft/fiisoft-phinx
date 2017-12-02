@@ -4,5 +4,5 @@
 /.settings/
 /.buildpath
 /.project
-/app.php
+/config.php
 /phinx/

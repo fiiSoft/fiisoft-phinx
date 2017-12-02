@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "c1d733de0a652b388b84ad94c2c3dca1",
+    "content-hash": "cdfd7779a82c180b7440fd1fe53c9937",
     "packages": [
         {
             "name": "fiisoft/basics",
@@ -174,30 +174,30 @@
         },
         {
             "name": "symfony/config",
-            "version": "v3.3.13",
+            "version": "v3.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/config.git",
-                "reference": "8d2649077dc54dfbaf521d31f217383d82303c5f"
+                "reference": "1de51a6c76359897ab32c309934b93d036bccb60"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/config/zipball/8d2649077dc54dfbaf521d31f217383d82303c5f",
-                "reference": "8d2649077dc54dfbaf521d31f217383d82303c5f",
+                "url": "https://api.github.com/repos/symfony/config/zipball/1de51a6c76359897ab32c309934b93d036bccb60",
+                "reference": "1de51a6c76359897ab32c309934b93d036bccb60",
                 "shasum": ""
             },
             "require": {
                 "php": "^5.5.9|>=7.0.8",
-                "symfony/filesystem": "~2.8|~3.0"
+                "symfony/filesystem": "~2.8|~3.0|~4.0"
             },
             "conflict": {
                 "symfony/dependency-injection": "<3.3",
                 "symfony/finder": "<3.3"
             },
             "require-dev": {
-                "symfony/dependency-injection": "~3.3",
-                "symfony/finder": "~3.3",
-                "symfony/yaml": "~3.0"
+                "symfony/dependency-injection": "~3.3|~4.0",
+                "symfony/finder": "~3.3|~4.0",
+                "symfony/yaml": "~3.0|~4.0"
             },
             "suggest": {
                 "symfony/yaml": "To use the yaml reference dumper"
@@ -205,7 +205,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.3-dev"
+                    "dev-master": "3.4-dev"
                 }
             },
             "autoload": {
@@ -232,7 +232,7 @@
             ],
             "description": "Symfony Config Component",
             "homepage": "https://symfony.com",
-            "time": "2017-11-07T14:16:22+00:00"
+            "time": "2017-11-19T20:09:36+00:00"
         },
         {
             "name": "symfony/console",
@@ -354,16 +354,16 @@
         },
         {
             "name": "symfony/filesystem",
-            "version": "v3.3.13",
+            "version": "v3.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/filesystem.git",
-                "reference": "77db266766b54db3ee982fe51868328b887ce15c"
+                "reference": "de56eee71e0a128d8c54ccc1909cdefd574bad0f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/filesystem/zipball/77db266766b54db3ee982fe51868328b887ce15c",
-                "reference": "77db266766b54db3ee982fe51868328b887ce15c",
+                "url": "https://api.github.com/repos/symfony/filesystem/zipball/de56eee71e0a128d8c54ccc1909cdefd574bad0f",
+                "reference": "de56eee71e0a128d8c54ccc1909cdefd574bad0f",
                 "shasum": ""
             },
             "require": {
@@ -372,7 +372,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.3-dev"
+                    "dev-master": "3.4-dev"
                 }
             },
             "autoload": {
@@ -399,7 +399,7 @@
             ],
             "description": "Symfony Filesystem Component",
             "homepage": "https://symfony.com",
-            "time": "2017-11-07T14:12:55+00:00"
+            "time": "2017-11-19T18:59:05+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",

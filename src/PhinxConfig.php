@@ -66,8 +66,6 @@ final class PhinxConfig extends AbstractConfiguration
     private function prepareSettings(array $defaults)
     {
         $defaults = array_merge([
-            'version_order' => 'creation',
-            'default_migration_table' => 'phinxlog',
             'migration_base_class' => PhinxAbstractMigration::class,
         ], $defaults);
         

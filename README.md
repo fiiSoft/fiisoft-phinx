@@ -17,6 +17,12 @@ It contains wrappers for Phinx's commands:
 * status
 * test
 
+It also contains four special commands (not available in Phinx):
+* mark - marks migration as migrated without migrating it (adds entry log to phinxlog so migration seems to be already migrated)
+* unmark - removes entry log from phinxlog, without rollback on migration (so migration will be migrated on next migrate)
+* remove - removes entry log from phinxlog and deletes corresponding migration file from disk 
+* cleanup - removes entries of missing migrations from phinxlog (if files are not available)
+
 In addition, it comes with special generic-purpose command phinx which allows to run other Phinx-specific commands in special way.
 
 ---------------------------------
@@ -90,3 +96,43 @@ $config = new PhinxConfig([
 ]);
 ```
 This defines root folder for all _destinations_. The path for migration files for _local_ is now `__DIR__/dev/local/migrations`.
+
+---
+
+To handle various different sets of migrations reffered to the same database, use:
+
+```php
+$config = new PhinxConfig([
+    'defaults' => [
+        'adapter' => 'pgsql',
+        'host' => 'localhost',
+        'name' => 'dbname',
+        'user' => 'username',
+        'pass' => 'password',
+    ],
+    'alpha' => [
+      'environments' => [
+          'dev' => [
+          ],
+      ],
+    ],
+    'bravo' => [
+      'environments' => [
+          'dev' => [
+          ],
+          'default_migration_table' => 'phinx_migrations',
+      ],
+    ],
+];
+```
+
+This configuration defines two _destinations_: _alpha_ and _bravo_.
+
+Migration files for _alpha_ will be stored in `(current working directory)/phinx/alpha/migrations`
+and the name of the table used by Phinx will be `phinxlog` (as default).
+
+Migration files for _bravo_ will be stored in `(current working directory)/phinx/bravo/migrations`
+and the name of the table used by Phinx will be `phinx_migrations`.
+
+Because there are no other data specified, both _destinations_ will share the same database, so it gives possibility
+to handle various sets of migrations for the same database.  

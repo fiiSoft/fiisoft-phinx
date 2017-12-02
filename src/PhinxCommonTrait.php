@@ -11,6 +11,25 @@ trait PhinxCommonTrait
 {
     /**
      * @param Table|string $tableName
+     * @param array|string $whereColumn
+     * @param mixed $value
+     * @throws \UnexpectedValueException
+     * @return array
+     */
+    final protected function fetchRowFromTable($tableName, $whereColumn, $value = null)
+    {
+        $table = $this->getTable($tableName);
+        $adapter = $table->getAdapter();
+        
+        return $adapter->fetchRow(
+            'SELECT * FROM '.$adapter->quoteTableName($table->getName())
+            .' WHERE '.$this->buildWhere($adapter, $whereColumn, $value)
+            .' LIMIT 1'
+        );
+    }
+    
+    /**
+     * @param Table|string $tableName
      * @param array $options
      * @throws \UnexpectedValueException
      * @return Table

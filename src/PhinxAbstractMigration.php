@@ -5,6 +5,7 @@ namespace FiiSoft\Phinx;
 use LogicException;
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Table;
+use Phinx\Db\Table\ForeignKey;
 use Phinx\Migration\AbstractMigration;
 use Phinx\Migration\MigrationInterface;
 use Phinx\Util\Util;
@@ -277,25 +278,6 @@ SQL
     
     /**
      * @param Table|string $tableName
-     * @param array|string $whereColumn
-     * @param mixed $value
-     * @throws \UnexpectedValueException
-     * @return array
-     */
-    final protected function fetchRowFromTable($tableName, $whereColumn, $value = null)
-    {
-        $table = $this->getTable($tableName);
-        $adapter = $table->getAdapter();
-        
-        return $adapter->fetchRow(
-            'SELECT * FROM '.$adapter->quoteTableName($table->getName())
-            .' WHERE '.$this->buildWhere($adapter, $whereColumn, $value)
-            .' LIMIT 1'
-        );
-    }
-    
-    /**
-     * @param Table|string $tableName
      * @param array|string $column
      * @param string|null $indexName
      * @throws \UnexpectedValueException
@@ -442,5 +424,151 @@ SQL
         $migration->setAdapter($this->adapter);
         
         return $migration;
+    }
+    
+    /**
+     * @param Table $table
+     * @param string $tableName
+     * @param array $fks format of each: [col, table, tablecol, ondelete?, onupdate?, fkname?] (? are optionall)
+     * @return void
+     */
+    final protected function addForeignKeysToTable(Table $table, $tableName, array $fks)
+    {
+        foreach ($fks as $fk) {
+            $table->addForeignKey($fk[0], $fk[1], $fk[2], [
+                'delete' => isset($fk[3]) ? $fk[3] : ForeignKey::CASCADE,
+                'update' => isset($fk[4]) ? $fk[4] : ForeignKey::RESTRICT,
+                'constraint' => $this->createForeginKeyName($tableName, $fk),
+            ]);
+        }
+    }
+    
+    /**
+     * @param string $tableName
+     * @param array $fks
+     * @throws \UnexpectedValueException
+     * @return void
+     */
+    final protected function dropForeignKeys($tableName, array $fks)
+    {
+        foreach ($fks as $fk) {
+            $this->dropForeignKeyByName($tableName, $fk[0], $this->createForeginKeyName($tableName, $fk));
+        }
+    }
+    
+    /**
+     * @param Table $table
+     * @param string $tableName
+     * @param array $indexes format of each: [column, unique?, name?] (? are optionall)
+     * @return void
+     */
+    final protected function addIndexesToTable(Table $table, $tableName, array $indexes)
+    {
+        foreach ($indexes as $index) {
+            $table->addIndex($index[0], [
+                'name' => $this->createIndexName($tableName, $index),
+                'unique' => isset($index[1]) ? (bool) $index[1] : false,
+            ]);
+        }
+    }
+    
+    /**
+     * @param string $tableName
+     * @param array $indexes format: [column, unique?, name?] (? are optionall)
+     * @throws \UnexpectedValueException
+     * @return void
+     */
+    final protected function dropIndexes($tableName, array $indexes)
+    {
+        foreach ($indexes as $index) {
+            $this->dropIndexByName($tableName, $this->createIndexName($tableName, $index));
+        }
+    }
+    
+    /**
+     * @param string $tableName
+     * @param array $fk format: [col, table, tablecol, ondelete?, onupdate?, fkname?] (? are optionall)
+     * @return string
+     */
+    private function createForeginKeyName($tableName, array $fk)
+    {
+        if (isset($fk[5])) {
+            return $fk[5];
+        }
+        
+        return $this->keepNameShort('fk', $tableName, $fk[0], '');
+    }
+    
+    /**
+     * @param string $tableName
+     * @param array $index format: [column, unique?, name?] (? are optionall); column can be array (if multi-col index)
+     * @return string
+     */
+    private function createIndexName($tableName, array $index)
+    {
+        if (isset($index[2])) {
+            return $index[2];
+        }
+        
+        if (is_array($index[0])) {
+            //this is a multi-columns index
+            return $this->keepNameShort('', $tableName, implode('_', $index[0]), 'idx');
+        }
+        
+        return $this->keepNameShort('', $tableName, $index[0], 'idx');
+    }
+    
+    /**
+     * @param string $tableName
+     * @param string $pkName
+     * @return string
+     */
+    final protected function createSequenceName($tableName, $pkName)
+    {
+        return $this->keepNameShort('', $tableName, $pkName, 'seq');
+    }
+    
+    /**
+     * @param string $prefix can be empty
+     * @param string $tableName should not be empty
+     * @param string $itemName should not be empty
+     * @param string $suffix can be empty
+     * @param int $maxLength
+     * @throws \LogicException
+     * @return string
+     */
+    private function keepNameShort($prefix, $tableName, $itemName, $suffix, $maxLength = 63)
+    {
+        $name = implode('_', array_filter([$prefix, $tableName, $itemName, $suffix]));
+    
+        if (strlen($name) > $maxLength) {
+        
+            $addonsLength = array_reduce(array_filter([$prefix, $suffix]), function ($result, $word) {
+                return $result + strlen($word) + 1;
+            }, 0);
+        
+            if ($addonsLength >= $maxLength) {
+                throw new \LogicException('Too long prefix and/or suffix');
+            }
+        
+            $maxItemLength = $maxLength - $addonsLength;
+            $itemLength = strlen($itemName);
+        
+            if ($itemLength <= $maxItemLength) {
+                $name = implode('_', array_filter([$prefix, $itemName, $suffix]));
+                $maxTableLength = $maxLength - strlen($name) - 1;
+                if ($maxTableLength > 0) {
+                    $name = implode('_', array_filter([$prefix, substr($tableName, 0, $maxTableLength), $itemName, $suffix]));
+                }
+            } else {
+                $name = implode('_', array_filter([$prefix, substr($itemName, 0, $maxItemLength - $itemLength), $suffix]));
+            }
+        
+            if (strlen($name) > $maxLength) {
+                $name = substr($name, 0, $maxLength);
+            }
+        }
+    
+        return $name;
     }
 }

@@ -1,0 +1,33 @@
+<?php
+
+use FiiSoft\Phinx\PhinxTemplatePath;
+
+return [
+    'defaults' => [
+        'template' => PhinxTemplatePath::path(),
+        'default_database' => 'dev',
+        'adapter' => 'pgsql',
+        'charset' => 'utf8',
+        'host' => 'defaulthost',
+        'name' => 'defaultdatabasename',
+        'user' => 'defaultuser',
+        'pass' => 'defaultpassword'
+    ],
+    'alpha' => [
+        'environments' => [
+            'dev' => [
+            ],
+            'stage' => [
+                'host' => 'stagehost',
+                'name' => 'stagedatabasename',
+            ],
+        ],
+    ],
+    'bravo' => [
+        'environments' => [
+            'dev' => [
+            ],
+            'default_migration_table' => 'phinx_migrations',
+        ],
+    ],
+];

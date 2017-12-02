@@ -12,7 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class GenericPhinxCmd extends Command
 {
-    const CREATES_CMDS = ['create', 'seed:create'];
+    const CMDS_WITH_ARGS = ['create', 'seed:create', 'mark', 'unmark', 'remove'];
     
     /** @var PhinxConfig */
     private $phinxConfig;
@@ -45,9 +45,10 @@ final class GenericPhinxCmd extends Command
         
         $this->addArgument('environment', InputArgument::OPTIONAL, 'Environment (if not default)');
         $this->addArgument('action', InputArgument::OPTIONAL, 'Action: status, create, migrate, rollback, etc.');
-        $this->addArgument('name', InputArgument::OPTIONAL, 'Name of migration or seed to create (CamelCase)');
+        $this->addArgument('param', InputArgument::OPTIONAL, 'Main param for Phinx command: name of migration or seed to create, target version etc.');
         
         $this->addOption('environment', 'e', InputOption::VALUE_REQUIRED, 'Environment (if not default)');
+        $this->addOption('target', 't', InputOption::VALUE_REQUIRED, 'Target (if command needs it)');
     }
     
     /**
@@ -62,7 +63,7 @@ final class GenericPhinxCmd extends Command
     {
         $configName = $input->getArgument('config');
         if (!$this->phinxConfig->hasConfig($configName)) {
-            $output->writeln('<error>Configuration '.$configName.' not found</error>');
+            $output->writeln('<error>configuration '.$configName.' not found</error>');
             return 1;
         }
         
@@ -78,13 +79,13 @@ final class GenericPhinxCmd extends Command
                     $action = $env;
                     $env = null;
                 }
-            } elseif (in_array($env, self::CREATES_CMDS, true)) {
+            } elseif (in_array($env, self::CMDS_WITH_ARGS, true)) {
                 if ($input->getOption('environment')) {
-                    $input->setArgument('name', $action);
+                    $input->setArgument('param', $action);
                     $action = $env;
                     $env = $input->getOption('environment');
-                } elseif (!$input->getArgument('name')) {
-                    $input->setArgument('name', $action);
+                } elseif (!$input->getArgument('param')) {
+                    $input->setArgument('param', $action);
                     $action = $env;
                     $env = null;
                 }
@@ -93,13 +94,13 @@ final class GenericPhinxCmd extends Command
             $action = 'status';
         }
         
-        $output->writeln('Use configuration <info>'.$configName.'</info>');
+        $output->writeln('use configuration <info>'.$configName.'</info>');
         
         if ($env) {
-            $output->writeln('Use environment <info>'.$env.'</info>');
+            $output->writeln('use environment <info>'.$env.'</info>');
         }
         
-        $output->writeln('Call action <info>'.$action.'</info>');
+        $output->writeln('call action <info>'.$action.'</info>');
         
         switch ($action) {
             case 'breakpoint':
@@ -123,11 +124,23 @@ final class GenericPhinxCmd extends Command
             case 'status':
                 $cmd = new PhinxStatusCmd($this->phinxConfig);
             break;
+            case 'mark':
+                $cmd = new PhinxMarkCmd($this->phinxConfig);
+            break;
+            case 'unmark':
+                $cmd = new PhinxUnmarkCmd($this->phinxConfig);
+            break;
+            case 'remove':
+                $cmd = new PhinxRemoveCmd($this->phinxConfig);
+            break;
+            case 'cleanup':
+                $cmd = new PhinxCleanupCmd($this->phinxConfig);
+            break;
             case 'test':
                 $cmd = new PhinxTestCmd($this->phinxConfig);
             break;
             default:
-                $output->writeln('<error>Invalid action: '.$action.'</error>');
+                $output->writeln('<error>invalid action: '.$action.'</error>');
                 return 1;
         }
     
@@ -135,8 +148,10 @@ final class GenericPhinxCmd extends Command
             'config' => $configName,
         ];
     
-        if ($cmd->getDefinition()->hasArgument('name')) {
-            $args['name'] = $input->getArgument('name');
+        foreach (['name', 'target'] as $arg) {
+            if ($cmd->getDefinition()->hasArgument($arg)) {
+                $args[$arg] = $input->getArgument('param');
+            }
         }
     
         if ($cmd->getDefinition()->hasOption('environment')) {
