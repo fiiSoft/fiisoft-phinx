@@ -63,11 +63,11 @@ EOT
         
         $versions = $env->getVersionLog();
         if (!isset($versions[$version])) {
-            $output->writeln('<comment>migration '.$version.' is not migrated yet</comment>');
+            $output->writeln('migration <comment>'.$version.'</comment> is not migrated yet');
             return 0;
         }
         
-        $output->writeln('<info>mark migration '.$version.' as not-migrated</info>');
+        $output->writeln('mark migration <info>'.$version.'</info> as not-migrated');
     
         $migrations = $this->manager->getMigrations();
         if (isset($migrations[$version])) {

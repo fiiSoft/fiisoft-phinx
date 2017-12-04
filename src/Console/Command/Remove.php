@@ -69,7 +69,7 @@ EOT
         $versions = $env->getVersionLog();
         
         if (isset($versions[$version])) {
-            $output->writeln('<info>remove migration '.$version.' from database</info>');
+            $output->writeln('remove migration <info>'.$version.'</info> from database');
             
             if (isset($migrations[$version])) {
                 $now = date('Y-m-d H:i:s');
@@ -85,7 +85,7 @@ EOT
         }
         
         if (isset($migrations[$version])) {
-            $output->writeln('<info>remove migration '.$version.' from disk</info>');
+            $output->writeln('remove migration <info>'.$version.'</info> from disk');
             
             foreach ($this->config->getMigrationPaths() as $path) {
                 foreach (Util::glob($path . DIRECTORY_SEPARATOR . '*.php') as $filePath) {

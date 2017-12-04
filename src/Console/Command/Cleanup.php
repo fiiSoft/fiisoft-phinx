@@ -55,7 +55,7 @@ EOT
         }
         
         foreach ($missing as $version) {
-            $output->writeln('<info>mark migration '.$version.' as not-migrated</info>');
+            $output->writeln('mark migration <info>'.$version.'</info> as not-migrated');
             
             $env->getAdapter()->execute(sprintf(
                 'DELETE FROM %s WHERE %s = %s',

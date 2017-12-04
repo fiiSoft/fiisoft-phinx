@@ -2,6 +2,10 @@
 
 All important changes to `fiisoft-phinx` will be documented in this file
 
+## 1.7.1
+
+Of course file bin/phinx is already occupied by Phinx, so... let's bin/finx!
+
 ## 1.7.0
 
 Added bin/phinx

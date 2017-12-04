@@ -74,11 +74,11 @@ EOT
         
         $versions = $env->getVersionLog();
         if (isset($versions[$version])) {
-            $output->writeln('<comment>migration '.$version.' is already migrated</comment>');
+            $output->writeln('migration <comment>'.$version.'</comment> is already migrated');
             return 0;
         }
         
-        $output->writeln('<info>mark migration '.$version.' as migrated</info>');
+        $output->writeln('mark migration <info>'.$version.'</info> as migrated');
     
         $now = date('Y-m-d H:i:s');
         $env->getAdapter()->migrated($migrations[$version], MigrationInterface::UP, $now, $now);
