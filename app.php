@@ -16,7 +16,13 @@ use FiiSoft\Phinx\Console\PhinxUnmarkCmd;
 use FiiSoft\Phinx\PhinxConfig;
 use Symfony\Component\Console\Application;
 
-require_once implode(DIRECTORY_SEPARATOR, [__DIR__, 'vendor', 'autoload.php']);
+foreach ([['..', '..'], ['vendor']] as $autoload) {
+    $autoload = implode(DIRECTORY_SEPARATOR, array_merge([__DIR__], $autoload, ['autoload.php']));
+    if (is_file($autoload)) {
+        require_once $autoload;
+        break;
+    }
+}
 
 $configFile = getcwd() . DIRECTORY_SEPARATOR . 'config.php';
 if (!is_file($configFile)) {
