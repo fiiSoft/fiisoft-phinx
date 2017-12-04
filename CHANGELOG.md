@@ -2,6 +2,10 @@
 
 All important changes to `fiisoft-phinx` will be documented in this file
 
+## 1.7.0
+
+Added bin/phinx
+
 ## 1.6.0
 
 Added file app.php as a handy way to run commands directly (with local configuration provided by user).

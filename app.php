@@ -16,9 +16,15 @@ use FiiSoft\Phinx\Console\PhinxUnmarkCmd;
 use FiiSoft\Phinx\PhinxConfig;
 use Symfony\Component\Console\Application;
 
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+require_once implode(DIRECTORY_SEPARATOR, [__DIR__, 'vendor', 'autoload.php']);
 
-$config = new PhinxConfig(require __DIR__ . DIRECTORY_SEPARATOR . 'config.php');
+$configFile = getcwd() . DIRECTORY_SEPARATOR . 'config.php';
+if (!is_file($configFile)) {
+    echo PHP_EOL, 'configuration file for phinx not available: ', $configFile, PHP_EOL;
+    exit(1);
+}
+
+$config = new PhinxConfig(require $configFile);
 $app = new Application();
 
 $app->addCommands([
