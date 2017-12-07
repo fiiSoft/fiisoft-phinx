@@ -4,6 +4,7 @@ namespace FiiSoft\Phinx\Console;
 
 use FiiSoft\Phinx\PhinxConfig;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\HelpCommand;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -12,7 +13,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class GenericPhinxCmd extends Command
 {
-    const CMDS_WITH_ARGS = ['create', 'seed:create', 'mark', 'unmark', 'remove'];
+    const CMDS_WITH_ARGS = ['create', 'seed:create', 'mark', 'unmark', 'remove', 'repeat', 'revoke'];
     
     /** @var PhinxConfig */
     private $phinxConfig;
@@ -39,16 +40,25 @@ final class GenericPhinxCmd extends Command
         
         $this->addArgument(
             'config',
-            InputArgument::REQUIRED,
-            'Name of configuration, one of: '.implode(', ', $this->phinxConfig->configs)
+            InputArgument::OPTIONAL,
+            'Name of configuration, one of: '.implode(', ', $this->phinxConfig->configs),
+            false
         );
         
         $this->addArgument('environment', InputArgument::OPTIONAL, 'Environment (if not default)');
         $this->addArgument('action', InputArgument::OPTIONAL, 'Action: status, create, migrate, rollback, etc.');
         $this->addArgument('param', InputArgument::OPTIONAL, 'Main param for Phinx command: name of migration or seed to create, target version etc.');
         
-        $this->addOption('environment', 'e', InputOption::VALUE_REQUIRED, 'Environment (if not default)');
-        $this->addOption('target', 't', InputOption::VALUE_REQUIRED, 'Target (if command needs it)');
+        $this->addOption('environment', 'e', InputOption::VALUE_REQUIRED, 'Option environment (if not default)');
+        $this->addOption('target', 't', InputOption::VALUE_REQUIRED, 'Option target <comment>[migrate|rollback|breakpoint]</comment>');
+        $this->addOption('date', 'd', InputOption::VALUE_REQUIRED, 'Option date <comment>[migrate|rollback]</comment>');
+        $this->addOption('seed', 's', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Name of the seeder <comment>[seed:run]</comment>');
+        $this->addOption('path', null, InputOption::VALUE_REQUIRED, 'Specify the path <comment>[create|seed:create]</comment>');
+        $this->addOption('template', null, InputOption::VALUE_REQUIRED, 'Use an alternative template <comment>[create]</comment>');
+        $this->addOption('force', null, InputOption::VALUE_NONE, 'Force rollback to ignore breakpoints <comment>[rollback]</comment>');
+        $this->addOption('remove-all', 'r', InputOption::VALUE_NONE, 'Remove all breakpoints <comment>[breakpoint]</comment>');
+        $this->addOption('dry-run', 'x', InputOption::VALUE_NONE, 'Dump query <comment>[migrate|rollback]</comment>');
+        $this->addOption('format', 'f', InputOption::VALUE_REQUIRED, 'The output format: text or json. <comment>[status]</comment>');
     }
     
     /**
@@ -62,6 +72,14 @@ final class GenericPhinxCmd extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $configName = $input->getArgument('config');
+        
+        if ($configName === false) {
+            $help = new HelpCommand();
+            $help->setCommand($this);
+            
+            return $help->run($input, $output);
+        }
+        
         if (!$this->phinxConfig->hasConfig($configName)) {
             $output->writeln('<error>configuration '.$configName.' not found</error>');
             return 1;
@@ -133,6 +151,12 @@ final class GenericPhinxCmd extends Command
             case 'remove':
                 $cmd = new PhinxRemoveCmd($this->phinxConfig);
             break;
+            case 'repeat':
+                $cmd = new PhinxRepeatCmd($this->phinxConfig);
+            break;
+            case 'revoke':
+                $cmd = new PhinxRevokeCmd($this->phinxConfig);
+            break;
             case 'cleanup':
                 $cmd = new PhinxCleanupCmd($this->phinxConfig);
             break;
@@ -154,8 +178,15 @@ final class GenericPhinxCmd extends Command
             }
         }
     
-        if ($cmd->getDefinition()->hasOption('environment')) {
-            $args['environment'] = $env;
+        foreach ($this->getDefinition()->getOptions() as $option) {
+            $optName = $option->getName();
+            if (null !== $input->getOption($optName) && $cmd->getDefinition()->hasOption($optName)) {
+                $args['--'.$optName] = $input->getOption($optName);
+            }
+        }
+    
+        if ($env && $cmd->getDefinition()->hasOption('environment')) {
+            $args['--environment'] = $env;
         }
     
         return $cmd->run(new ArrayInput($args), $output);

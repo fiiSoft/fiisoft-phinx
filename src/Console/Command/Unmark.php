@@ -2,8 +2,6 @@
 
 namespace FiiSoft\Phinx\Console\Command;
 
-use Phinx\Console\Command\AbstractCommand;
-use Phinx\Migration\MigrationInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -40,28 +38,16 @@ EOT
     {
         $this->bootstrap($input, $output);
         
-        $environment = $input->getOption('environment');
-        if (null === $environment) {
-            $environment = $this->getConfig()->getDefaultEnvironment();
-            $output->writeln('<comment>warning</comment> no environment specified, defaulting to: ' . $environment);
-        } else {
-            $output->writeln('<info>using environment</info> ' . $environment);
-        }
-        
-        $version = $input->getArgument('target');
-        if (!$version) {
-            $output->writeln('<comment>target version is required</comment>');
-            return 2;
-        }
-        
-        if (!ctype_digit($version) || strlen($version) !== 14) { //YmdHis
-            $output->writeln('<error>target '.$version.' is not a valid version number</error>');
-            return 3;
+        $environment = $this->getOptionEnvironment($input, $output);
+    
+        $version = $this->getArgumentVersion($input, $output);
+        if (is_int($version)) {
+            return $version;
         }
     
         $env = $this->manager->getEnvironment($environment);
-        
         $versions = $env->getVersionLog();
+        
         if (!isset($versions[$version])) {
             $output->writeln('migration <comment>'.$version.'</comment> is not migrated yet');
             return 0;
@@ -71,15 +57,9 @@ EOT
     
         $migrations = $this->manager->getMigrations();
         if (isset($migrations[$version])) {
-            $now = date('Y-m-d H:i:s');
-            $env->getAdapter()->migrated($migrations[$version], MigrationInterface::DOWN, $now, $now);
+            $this->markMigrationAsUnmigrated($env, $migrations[$version]);
         } else {
-            $env->getAdapter()->execute(sprintf(
-                'DELETE FROM %s WHERE %s = %s',
-                $env->getSchemaTableName(),
-                $env->getAdapter()->quoteColumnName('version'),
-                $version
-            ));
+            $this->removeMigrationFromPhinxlog($env, $version);
         }
 
         return 0;

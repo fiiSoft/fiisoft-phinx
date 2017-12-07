@@ -2,7 +2,6 @@
 
 namespace FiiSoft\Phinx\Console\Command;
 
-use Phinx\Console\Command\AbstractCommand;
 use Phinx\Migration\Manager\Environment;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -38,14 +37,7 @@ EOT
     {
         $this->bootstrap($input, $output);
         
-        $environment = $input->getOption('environment');
-        if (null === $environment) {
-            $environment = $this->getConfig()->getDefaultEnvironment();
-            $output->writeln('<comment>warning</comment> no environment specified, defaulting to: ' . $environment);
-        } else {
-            $output->writeln('<info>using environment</info> ' . $environment);
-        }
-    
+        $environment = $this->getOptionEnvironment($input, $output);
         $env = $this->manager->getEnvironment($environment);
         
         $missing = $this->getMissingMigrations($env);
@@ -56,13 +48,7 @@ EOT
         
         foreach ($missing as $version) {
             $output->writeln('mark migration <info>'.$version.'</info> as not-migrated');
-            
-            $env->getAdapter()->execute(sprintf(
-                'DELETE FROM %s WHERE %s = %s',
-                $env->getSchemaTableName(),
-                $env->getAdapter()->quoteColumnName('version'),
-                $version
-            ));
+            $this->removeMigrationFromPhinxlog($env, $version);
         }
         
         return 0;

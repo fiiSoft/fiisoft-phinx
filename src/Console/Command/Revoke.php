@@ -2,12 +2,13 @@
 
 namespace FiiSoft\Phinx\Console\Command;
 
+use Phinx\Migration\MigrationInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Mark extends AbstractCommand
+class Revoke extends AbstractCommand
 {
     /**
      * {@inheritdoc}
@@ -16,15 +17,15 @@ class Mark extends AbstractCommand
     {
         parent::configure();
         
-        $this->setName('mark')
-            ->setDescription('Mark migration as migrated')
-            ->addArgument('target', InputArgument::REQUIRED, 'The version number of migration to mark as migrated')
+        $this->setName('revoke')
+            ->setDescription('Rollback particular migration')
+            ->addArgument('target', InputArgument::REQUIRED, 'The version number of migration to rollback')
             ->addOption('--environment', '-e', InputOption::VALUE_REQUIRED, 'The target environment.')
             ->setHelp(
                 <<<EOT
-The <info>mark</info> command marks single particular migration (by its version number) as migrated.
+The <info>revoke</info> command forces to rollback single particular migration (by its version number).
 
-<info>phinx mark {target} -e development</info>
+<info>phinx revoke {target} -e development</info>
 EOT
             );
     }
@@ -39,7 +40,7 @@ EOT
         $this->bootstrap($input, $output);
         
         $environment = $this->getOptionEnvironment($input, $output);
-    
+        
         $version = $this->getArgumentVersion($input, $output);
         if (is_int($version)) {
             return $version;
@@ -49,17 +50,16 @@ EOT
         if (is_int($migration)) {
             return $migration;
         }
-    
-        $env = $this->manager->getEnvironment($environment);
         
-        $versions = $env->getVersionLog();
-        if (isset($versions[$version])) {
-            $output->writeln('migration <comment>'.$version.'</comment> is already migrated');
-        } else {
-            $output->writeln('mark migration <info>'.$version.'</info> as migrated');
-            $this->markMigrationAsMigrated($env, $migration);
-        }
+        $output->writeln('rollback migration <info>'.$version.'</info>');
     
+        $start = microtime(true);
+        $this->manager->executeMigration($environment, $migration, MigrationInterface::DOWN);
+        $end = microtime(true);
+    
+        $output->writeln('');
+        $output->writeln('<comment>All Done. Took ' . sprintf('%.4fs', $end - $start) . '</comment>');
+        
         return 0;
     }
 }

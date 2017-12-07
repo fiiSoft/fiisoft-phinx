@@ -17,9 +17,11 @@ It contains wrappers for Phinx's commands:
 * status
 * test
 
-It also contains four special commands (not available in Phinx):
+It also contains six special commands (not available in Phinx):
 * mark - marks migration as migrated without migrating it (adds entry log to phinxlog so migration seems to be already migrated)
 * unmark - removes entry log from phinxlog, without rollback on migration (so migration will be migrated on next migrate)
+* repeat - repeats single migration (specified by its version number) even if migrated
+* revoke - performs rollback on single migration (specified by its version number) 
 * remove - removes entry log from phinxlog and deletes corresponding migration file from disk 
 * cleanup - removes entries of missing migrations from phinxlog (if files are not available)
 
@@ -135,4 +137,34 @@ Migration files for _bravo_ will be stored in `(current working directory)/phinx
 and the name of the table used by Phinx will be `phinx_migrations`.
 
 Because there are no other data specified, both _destinations_ will share the same database, so it gives possibility
-to handle various sets of migrations for the same database.  
+to handle various sets of migrations for the same database.
+
+-----------------------
+
+There is also a bin/finx executable file provided with library.
+Usage of it is a bit hard to explain because it uses its own schema of arguments.
+
+Some examples (lets assume the _local_ destination is defined in configuration):
+
+- `bin/finx list` show list of available commands
+- `bin/finx` the same as above (command list is default)
+- `bin/finx phinx` show help for generic command (phinx)
+- `bin/finx phinx local status` show status of migrations from destiny _local_
+- `bin/finx phinx local` the same as above (command status is default)
+- `bin/finx local` the same as above (status is default, keyword phinx can be omitted)
+- `bin/finx phinx:status local` the same as above (by direct call of command status)
+
+Some examples of call command _migrate_ with environment _dev_ from destination _local_,
+in different ways (and all do exactly the same!):
+
+- `bin/finx phinx local migrate -e dev` 
+- `bin/finx phinx local dev migrate` 
+- `bin/finx phinx local migrate` 
+- `bin/finx phinx:migrate local -e dev` 
+- `bin/finx phinx:migrate local dev` 
+- `bin/finx phinx:migrate local` 
+- `bin/finx local migrate -e dev` 
+- `bin/finx local dev migrate` 
+- `bin/finx local migrate` (this one I prefer)
+
+As you can see, it's a bit crazy.

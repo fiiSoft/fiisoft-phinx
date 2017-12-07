@@ -7,6 +7,8 @@ use FiiSoft\Phinx\Console\PhinxCreateCmd;
 use FiiSoft\Phinx\Console\PhinxMarkCmd;
 use FiiSoft\Phinx\Console\PhinxMigrateCmd;
 use FiiSoft\Phinx\Console\PhinxRemoveCmd;
+use FiiSoft\Phinx\Console\PhinxRepeatCmd;
+use FiiSoft\Phinx\Console\PhinxRevokeCmd;
 use FiiSoft\Phinx\Console\PhinxRollbackCmd;
 use FiiSoft\Phinx\Console\PhinxSeedCreateCmd;
 use FiiSoft\Phinx\Console\PhinxSeedRunCmd;
@@ -26,12 +28,12 @@ foreach ([['..', '..'], ['vendor']] as $autoload) {
 
 $configFile = getcwd() . DIRECTORY_SEPARATOR . 'config.php';
 if (!is_file($configFile)) {
-    echo PHP_EOL, 'configuration file for phinx not available: ', $configFile, PHP_EOL;
+    echo PHP_EOL, 'configuration file for Phinx not available: ', $configFile, PHP_EOL;
     exit(1);
 }
 
 $config = new PhinxConfig(require $configFile);
-$app = new Application();
+$app = new Application('Finx (thanks to Phinx)');
 
 $app->addCommands([
     new GenericPhinxCmd($config),
@@ -41,6 +43,8 @@ $app->addCommands([
     new PhinxMarkCmd($config),
     new PhinxMigrateCmd($config),
     new PhinxRemoveCmd($config),
+    new PhinxRepeatCmd($config),
+    new PhinxRevokeCmd($config),
     new PhinxRollbackCmd($config),
     new PhinxSeedCreateCmd($config),
     new PhinxSeedRunCmd($config),
@@ -48,5 +52,11 @@ $app->addCommands([
     new PhinxTestCmd($config),
     new PhinxUnmarkCmd($config),
 ]);
+
+if (!isset($_SERVER['argv'][1])) {
+    $_SERVER['argv'][1] = 'list';
+} else if ($_SERVER['argv'][1] !== 'list' && 0 !== strpos($_SERVER['argv'][1], 'phinx')) {
+    array_splice($_SERVER['argv'], 1, 0, ['phinx']);
+}
 
 $app->run();

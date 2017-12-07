@@ -2,6 +2,15 @@
 
 All important changes to `fiisoft-phinx` will be documented in this file
 
+## 1.8.0
+
+* added two new commands: revoke and repeat
+* added bunch of options specific for sub-commands to base command (phinx)
+* fixed passing the options to sub-commands from base command
+* changed the way how app is run though call bin/finx (name of command phinx is now optional)
+* errors codes have been unified
+* some errors have been fixed
+
 ## 1.7.2
 
 Yep, fixed autoloading.

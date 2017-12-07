@@ -7,7 +7,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Mark extends AbstractCommand
+class Repeat extends AbstractCommand
 {
     /**
      * {@inheritdoc}
@@ -16,15 +16,15 @@ class Mark extends AbstractCommand
     {
         parent::configure();
         
-        $this->setName('mark')
-            ->setDescription('Mark migration as migrated')
-            ->addArgument('target', InputArgument::REQUIRED, 'The version number of migration to mark as migrated')
+        $this->setName('repeat')
+            ->setDescription('Repeat particular migration')
+            ->addArgument('target', InputArgument::REQUIRED, 'The version number of migration to migrate again')
             ->addOption('--environment', '-e', InputOption::VALUE_REQUIRED, 'The target environment.')
             ->setHelp(
                 <<<EOT
-The <info>mark</info> command marks single particular migration (by its version number) as migrated.
+The <info>repeat</info> command repeates migration of single particular migration (by its version number).
 
-<info>phinx mark {target} -e development</info>
+<info>phinx repeat {target} -e development</info>
 EOT
             );
     }
@@ -49,16 +49,18 @@ EOT
         if (is_int($migration)) {
             return $migration;
         }
-    
-        $env = $this->manager->getEnvironment($environment);
         
-        $versions = $env->getVersionLog();
-        if (isset($versions[$version])) {
-            $output->writeln('migration <comment>'.$version.'</comment> is already migrated');
-        } else {
-            $output->writeln('mark migration <info>'.$version.'</info> as migrated');
-            $this->markMigrationAsMigrated($env, $migration);
-        }
+        $output->writeln('repeat migration <info>'.$version.'</info>');
+    
+        $start = microtime(true);
+    
+        $this->markMigrationAsUnmigrated($this->manager->getEnvironment($environment), $migration);
+        $this->manager->executeMigration($environment, $migration);
+        
+        $end = microtime(true);
+    
+        $output->writeln('');
+        $output->writeln('<comment>All Done. Took ' . sprintf('%.4fs', $end - $start) . '</comment>');
     
         return 0;
     }
