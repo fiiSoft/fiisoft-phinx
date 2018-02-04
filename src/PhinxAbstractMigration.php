@@ -3,7 +3,6 @@
 namespace FiiSoft\Phinx;
 
 use LogicException;
-use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Table;
 use Phinx\Db\Table\ForeignKey;
 use Phinx\Migration\AbstractMigration;
@@ -259,6 +258,30 @@ SQL
     
     /**
      * @param Table|string $tableName
+     * @param string $constraint
+     * @param string|null $additional can be RESTRICT or CASCADE
+     * @throws \UnexpectedValueException
+     * @return void
+     */
+    final protected function dropConstraintByName($tableName, $constraint, $additional = null)
+    {
+        $table = $this->getTable($tableName);
+        $adapter = $table->getAdapter();
+        
+        $sql = 'ALTER TABLE '.$adapter->quoteTableName($table->getName()).' DROP CONSTRAINT '.$constraint;
+    
+        if ($additional !== null) {
+            $additional = strtoupper($additional);
+            if ($additional === 'RESTRICT' || $additional === 'CASCADE') {
+                $sql .= ' '.$additional;
+            }
+        }
+        
+        $adapter->execute($sql);
+    }
+    
+    /**
+     * @param Table|string $tableName
      * @param array|string $column
      * @param mixed $value
      * @throws \UnexpectedValueException
@@ -360,29 +383,6 @@ SQL
         $table->setAdapter($this->getAdapterWithSchema($table->getAdapter(), $tableSchema));
         
         return $table;
-    }
-    
-    /**
-     * @param AdapterInterface $adapter
-     * @param string $schema
-     * @return AdapterInterface
-     */
-    private function getAdapterWithSchema(AdapterInterface $adapter, $schema)
-    {
-        $adapterSchema = $adapter->hasOption('schema') ? $adapter->getOption('schema') : 'public';
-        if ($adapterSchema === $schema) {
-            return $adapter;
-        }
-    
-        $this->writelnVerbose('Adapter has schema: '.$adapterSchema.' but required schema is: '.$schema.' - make copy');
-        
-        $copy = clone $adapter;
-        
-        $options = $copy->getOptions();
-        $options['schema'] = $schema;
-        $copy->setOptions($options);
-        
-        return $copy;
     }
     
     /**

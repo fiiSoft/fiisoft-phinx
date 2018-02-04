@@ -6,3 +6,4 @@
 /.project
 /config.php
 /phinx/
+/composer.lock

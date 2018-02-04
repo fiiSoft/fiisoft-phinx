@@ -2,6 +2,13 @@
 
 All important changes to `fiisoft-phinx` will be documented in this file
 
+## 1.9.0
+
+* new method PhinxAbstractMigration::dropConstraintByName
+* new method PhinxCommonTrait::isTableEmpty
+* fixed bug - table witch schema in PhinxAbstractSeed was not handled properly
+* removed file composer.lock 
+
 ## 1.8.0
 
 * added two new commands: revoke and repeat

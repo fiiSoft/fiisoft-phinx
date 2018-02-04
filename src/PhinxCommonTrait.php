@@ -72,6 +72,29 @@ trait PhinxCommonTrait
     }
     
     /**
+     * @param AdapterInterface $adapter
+     * @param string $schema
+     * @return AdapterInterface
+     */
+    private function getAdapterWithSchema(AdapterInterface $adapter, $schema)
+    {
+        $adapterSchema = $adapter->hasOption('schema') ? $adapter->getOption('schema') : 'public';
+        if ($adapterSchema === $schema) {
+            return $adapter;
+        }
+        
+        $this->writelnVerbose('Adapter has schema: '.$adapterSchema.' but required schema is: '.$schema.' - make copy');
+        
+        $copy = clone $adapter;
+        
+        $options = $copy->getOptions();
+        $options['schema'] = $schema;
+        $copy->setOptions($options);
+        
+        return $copy;
+    }
+    
+    /**
      * @param Table|string $tableName
      * @param array|string $column
      * @param mixed|null $value
@@ -90,6 +113,19 @@ trait PhinxCommonTrait
         );
         
         return $row['cnt'] > 0;
+    }
+    
+    /**
+     * @param Table|string $tableName
+     * @return bool
+     */
+    final protected function isTableEmpty($tableName)
+    {
+        $table = $this->getTable($tableName);
+        $adapter = $table->getAdapter();
+        
+        $row = $adapter->fetchRow('SELECT COUNT(1) AS cnt FROM '.$adapter->quoteTableName($table->getName()));
+        return $row['cnt'] === 0;
     }
     
     /**
