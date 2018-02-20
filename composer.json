@@ -5,7 +5,7 @@
     "keywords": ["phinx","migration","console"],
     "homepage": "https://github.com/fiiSoft/fiisoft-phinx",
     "license": "MIT",
-    "version": "1.9.0",
+    "version": "1.9.1",
     "authors": [
         {
             "name": "FiiSoft",

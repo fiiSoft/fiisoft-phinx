@@ -2,6 +2,11 @@
 
 All important changes to `fiisoft-phinx` will be documented in this file
 
+## 1.9.1
+
+* fixed bug in Cleanup command
+* removed unnecessary second call of $app->run() in bin/finx  
+
 ## 1.9.0
 
 * new method PhinxAbstractMigration::dropConstraintByName

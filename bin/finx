@@ -1,4 +1,3 @@
 #!/usr/bin/env php
 <?php
-$app = require implode(DIRECTORY_SEPARATOR, [__DIR__, '..',  'app.php']);
-$app->run();
+require implode(DIRECTORY_SEPARATOR, [__DIR__, '..',  'app.php']);
