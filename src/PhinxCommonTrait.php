@@ -40,12 +40,22 @@ trait PhinxCommonTrait
             return $tableName;
         }
         
+        return $this->table($tableName, $options);
+    }
+    
+    /**
+     * @param string $tableName
+     * @param array $options
+     * @return array tuple with prepared [tableName, options]
+     */
+    private function prepareTableNameAndOptions($tableName, array $options = [])
+    {
         list($schemaName, $tableName) = $this->getSchemaAndTableNameFrom($tableName);
         $this->writelnVerbose('Table name: '.$tableName.' and schema name: '.$schemaName);
         
         $options['schema'] = $schemaName;
         
-        return $this->table($tableName, $options);
+        return [$tableName, $options];
     }
     
     /**
@@ -125,7 +135,7 @@ trait PhinxCommonTrait
         $adapter = $table->getAdapter();
         
         $row = $adapter->fetchRow('SELECT COUNT(1) AS cnt FROM '.$adapter->quoteTableName($table->getName()));
-        return $row['cnt'] === 0;
+        return 0 === (int) $row['cnt'];
     }
     
     /**

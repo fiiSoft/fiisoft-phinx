@@ -2,6 +2,11 @@
 
 All important changes to `fiisoft-phinx` will be documented in this file
 
+## 1.9.2
+
+* fixed invalid schemas for tables (when other than public)
+* fixed comparision in method isTableEmpty 
+
 ## 1.9.1
 
 * fixed bug in Cleanup command

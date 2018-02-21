@@ -16,13 +16,12 @@ abstract class PhinxAbstractSeed extends AbstractSeed
      */
     final public function table($tableName, $options = array())
     {
+        list($tableName, $options) = $this->prepareTableNameAndOptions($tableName, $options);
         $table = parent::table($tableName, $options);
-        
-        $tableOptions = $table->getOptions();
-        $tableSchema = isset($tableOptions['schema']) ? $tableOptions['schema'] : 'public';
-        
-        $table->setAdapter($this->getAdapterWithSchema($table->getAdapter(), $tableSchema));
-        
+    
+        $schema = isset($options['schema']) ? $options['schema'] : 'public';
+        $table->setAdapter($this->getAdapterWithSchema($table->getAdapter(), $schema));
+    
         return $table;
     }
 }
